@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless API for portfolio
+
+Parameters:
+  SESIdentity:
+    Type: String
+    Description: Target email for SES send email
+
+Globals:
+  Api:
+    Cors:
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+
+Resources:
+  SendEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/send-email.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Timeout: 20
+      Policies:
+        - SESCrudPolicy:
+            IdentityName: !Ref SESIdentity
+      Environment:
+        Variables:
+          EMAIL_SOURCE: !Ref SESIdentity
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /email
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - handlers/send-email.ts
+
+Outputs:
+  ApiEndpoint:
+    Description: 'API Gateway endpoint URL for Prod stage'
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/'
