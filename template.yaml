@@ -17,6 +17,7 @@ Resources:
   SendEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: portfolio-api-send-email
       CodeUri: src/
       Handler: handlers/send-email.handler
       Runtime: nodejs14.x
